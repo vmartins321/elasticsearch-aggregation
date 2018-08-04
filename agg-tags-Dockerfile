@@ -1,0 +1,32 @@
+FROM docker.elastic.co/logstash/logstash-x-pack:6.2.4
+
+# Install prune plugin
+RUN bin/logstash-plugin install --version 3.0.3 logstash-filter-prune
+
+# Copy configuration
+WORKDIR /usr/share/logstash
+COPY pipeline/agg-tags-v1.conf pipeline/agg-tags-v1.conf
+COPY template/agg-tags-template.json ./agg-tags-template.json
+COPY common/agg-tags-entrypoint.sh ./
+COPY common/logstash.yml ./
+COPY /common/*.json pipeline/
+
+ENV SSL_CERT_FILE /usr/share/logstash/logstash-core/lib/logstash/certs/cacert.pem
+
+USER root
+
+RUN curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz > /tmp/google-cloud-sdk.tar.gz
+RUN mkdir -p /usr/local/gcloud
+RUN tar -C /usr/local/gcloud -xvf /tmp/google-cloud-sdk.tar.gz
+RUN /usr/local/gcloud/google-cloud-sdk/install.sh
+ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
+
+RUN echo "y" | yum install gettext
+RUN chown -R logstash:logstash /usr/share/logstash/pipeline
+RUN chown -R logstash:logstash agg-tags-entrypoint.sh
+RUN chmod u+x agg-tags-entrypoint.sh
+RUN chown -R logstash:logstash logstash.yml
+RUN chown logstash:logstash agg-tags-template.json
+USER logstash
+
+ENTRYPOINT ["./agg-tags-entrypoint.sh"]

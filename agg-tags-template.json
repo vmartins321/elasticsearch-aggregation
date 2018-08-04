@@ -1,0 +1,70 @@
+{  
+   "size": 0,
+   "_source": false,
+    "query": {
+      "bool": {
+        "filter": {
+          "terms": {
+              "categories.keyword": [
+                  "Alexa Skills"
+                  ,"Appliances"
+                  ,"Apps & Games"
+                  ,"Arts, Crafts & Sewing"
+                  ,"Automotive"
+                  ,"Baby Products"
+                  ,"Beauty & Personal Care"
+                  ,"Books"
+                  ,"CDs & Vinyl"
+                  ,"Cell Phones & Accessories"
+                  ,"Clothing, Shoes & Jewelry"
+                  ,"Collectibles & Fine Art"
+                  ,"Electronics"
+                  ,"Gift Cards"
+                  ,"Grocery & Gourmet Food"
+                  ,"Health & Household"
+                  ,"Home & Kitchen"
+                  ,"Industrial & Scientific"
+                  ,"Kindle Store"
+                  ,"Movies & TV"
+                  ,"Musical Instruments"
+                  ,"Office Products"
+                  ,"Patio, Lawn & Garden"
+                  ,"Pet Supplies"
+                  ,"Software"
+                  ,"Sports & Outdoors"
+                  ,"Tools & Home Improvement"
+                  ,"Toys & Games"
+                  ,"Video Games"]               
+                  }
+                },
+        "must": {
+         "nested" : {
+            "path" : "variants",
+            "score_mode" : "avg",
+            "query" : {
+               "match" : {
+                 "variants.title": {
+                   "query": "%{[variants][0][title]}"
+                 } 
+               } 
+            }
+                }
+            }
+        }
+    }
+    ,
+    "aggs": {
+      "sample" : {
+        "sampler" : {
+            "shard_size": 5
+        },
+        "aggs": {
+            "top_categories" : {
+                "terms" : {
+                    "field" : "categories.keyword"
+            }
+          }
+        }
+      }
+    }
+  }

@@ -1,0 +1,49 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+#apiVersion: batch/v1 # For testing only
+#kind: Job # For testing only
+metadata:
+  name: es-agg-tags-logstash
+spec:
+  schedule: 0 7 * * * #  12:00 AM PDT # Remove if job
+  concurrencyPolicy: Forbid # Remove if job
+  startingDeadlineSeconds: 120 # Remove if job
+  jobTemplate: # Remove if job
+    spec: # Remove if job
+      template:
+        spec:
+          nodeSelector:
+            cloud.google.com/gke-nodepool: pool-agg-tags-16
+          containers:
+          - name: agg-tags-logstash
+            image: us.gcr.io/$PROJECT/logstash-agg-tags:6.2.4-$VERSION
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: CLUSTER_NAME
+              value: $CLUSTER
+            - name: ELASTIC_URL
+              value: http://es-${COMPONENT}-search:9200
+            - name: ELASTIC_USER
+              value: elastic
+            - name: ELASTIC_PWD
+              value: espwd
+            - name: LOG_PWD
+              value: testtest
+            - name: CONF_FILE
+              value: agg-tags-v1.conf
+            - name: INDEX
+              value: parents
+            - name: PIPELINE_NAME
+              value: agg-tags-pipeline
+            - name: PROJECT
+              value: $PROJECT
+            - name: WORKER
+              value: "16"
+            - name: BATCH_SIZE
+              value: "20"
+            - name: DEAD_LETTER
+              value: "false"
+            - name: GCS_DIR
+              value: $GCS_DIR
+          restartPolicy: Never 
+
